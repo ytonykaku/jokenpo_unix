@@ -14,7 +14,7 @@ int main() {
     int sockfd;
     struct sockaddr_in serv_addr;
     struct hostent *server;
-    int play;
+    int play, result, player1Score = 0, player2Score = 0;
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
@@ -38,15 +38,34 @@ int main() {
         exit(1);
     }
 
-    printf("Choose your play:\nROCK - 1\nPAPER - 2\nSCISSORS - 3\n");
-    scanf("%d", &play);
+    while(play != 0){
+        printf("Choose your play:\nROCK - 1\nPAPER - 2\nSCISSORS - 3\nEXIT - 0\n");
+        scanf("%d", &play);
 
-    int bytes_written = write(sockfd, &play, sizeof(play));
-    if (bytes_written < 0) {
-        perror("Error writing to socket");
-        exit(1);
+        if (play == 0) break;
+
+        int bytes_written = write(sockfd, &play, sizeof(play));
+        if (bytes_written < 0) {
+            perror("Error writing to socket");
+            exit(1);
+        }
+
+        // Recebendo o resultado do servidor
+        int bytes_received = recv(sockfd, &result, sizeof(result), 0);
+
+        printf("%d\n", result);
+
+        if (result == 0) printf("Draw!\n");
+        else {
+            printf("Winner: Player %d!\n", result);
+            if(result == 1) player1Score += 1;
+            else player2Score +=1;
+        }
+        printf("Player 1 Score: %d\n", player1Score);
+        printf("Player 2 Score: %d\n", player2Score);
     }
 
     close(sockfd);
     return 0;
+    
 }
