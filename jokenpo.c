@@ -32,3 +32,8 @@ void announceWinner(int result){
     else if(result == 1) printf("Winner: Player 1!\n");
     else printf("Winner: Player 2!\n");
 }
+
+int increaseScore(int playerScore){
+    playerScore += 1;
+    return playerScore;
+}
