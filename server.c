@@ -11,9 +11,9 @@
 #define MAX_CONNECTIONS 2
 
 int main() {
-    int sockfd, newsockfd, clilen;
+    int sockfd, newsockfds[MAX_CONNECTIONS], clilen;
     struct sockaddr_in serv_addr, cli_addr;
-    int player1Play, player2Play;
+    int player1Play, player2Play, player1Score = 0, player2Score = 0;
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
@@ -36,15 +36,15 @@ int main() {
 
     printf("Waiting for connections...\n");
 
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-    if (newsockfd < 0) {
+    newsockfds[0] = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+    if (newsockfds[0] < 0) {
         perror("Error accepting connection");
         exit(1);
     }
     printf("Connection established with player 1.\n");
 
-    newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
-    if (newsockfd < 0) {
+    newsockfds[1] = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+    if (newsockfds[1] < 0) {
         perror("Error accepting connection");
         exit(1);
     }
@@ -52,13 +52,66 @@ int main() {
 
     int result;
 
-    player1Play = pickPlay(&player1Play, 1);
-    player2Play = pickPlay(&player2Play, 2);
+    while(player1Play != 0 || player2Play != 0){
+        for(int i = 0; i < 2; i++){
 
-    result = pickWinner(player1Play, player2Play);
-    announceWinner(result);
+        // Recebe a jogada do jogador 1
+        int bytes_read = read(newsockfds[0], &player1Play, sizeof(player1Play));
+        if (bytes_read < 0) {
+            perror("Error reading from socket");
+            exit(1);
+        }
+        if(player1Play == 0) break;
 
-    close(newsockfd);
+        // Recebe a jogada do jogador 2
+        bytes_read = read(newsockfds[1], &player2Play, sizeof(player2Play));
+        if (bytes_read < 0) {
+            perror("Error reading from socket");
+            exit(1);
+        }
+        if(player2Play == 0) break;
+
+        result = pickWinner(player1Play, player2Play);
+
+        int bytes_sent1 = send(newsockfds[0], &result, sizeof(result), 0);
+        if (bytes_sent1 < 0) {
+            perror("Error sending data to player 1");
+            exit(1);
+        }
+
+        int bytes_sent2 = send(newsockfds[1], &result, sizeof(result), 0);
+        if (bytes_sent2 < 0) {
+            perror("Error sending data to player 2");
+            exit(1);
+        }
+
+
+        /*close(newsockfds[0]);
+        close(newsockfds[1]);*/
+        announceWinner(result);
+        if(result == 1){
+            player1Score = increaseScore(player1Score);
+            int bytes_sent3 = send(newsockfds[1], &player1Score, sizeof(player1Score), 0);
+            if (bytes_sent3 < 0) {
+                perror("Error sending data to player 2");
+                exit(1);
+            }
+        }
+        else if(result == 2){
+            player2Score = increaseScore(player2Score);
+            int bytes_sent4 = send(newsockfds[1], &player2Score, sizeof(player2Score), 0);
+            if (bytes_sent4 < 0) {
+                perror("Error sending data to player 2");
+                exit(1);
+            }
+        }
+        printf("Player 1 Score: %d\n", player1Score);
+        printf("Player 2 Score: %d\n", player2Score);
+
+        }
+    }
+
+    
     close(sockfd);
 
     return 0;
