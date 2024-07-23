@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include "jokenpo.h"
 
 #define PORT 12345
 #define SERVER_ADDR "127.0.0.1"
@@ -39,8 +40,7 @@ int main() {
     }
 
     while(play != 0){
-        printf("Choose your play:\nROCK - 1\nPAPER - 2\nSCISSORS - 3\nEXIT - 0\n");
-        scanf("%d", &play);
+        pickPlay(&play);
 
         if (play == 0) break;
 
