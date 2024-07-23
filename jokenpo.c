@@ -5,8 +5,8 @@
 #define PAPER 2
 #define SCISSORS 3
 
-int pickPlay(int *play, int player){
-    printf("Choose your play, player %d:\nROCK - 1\nPAPER - 2\nSCISSORS - 3\n", player);
+int pickPlay(int *play){
+    printf("Choose your play:\nROCK - 1\nPAPER - 2\nSCISSORS - 3\nQUIT - 0\n");
     scanf("%d", play);
     return *play;
 }
